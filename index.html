@@ -1,54 +1,65 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Polaroid SX-70 Birthday Calculator</title>
+</head>
 <body>
-<script>
-const params = new URLSearchParams(window.location.search);
-const code = (params.get("serial") || "").toUpperCase();
+    <script>
+        /**
+         * 完全复刻 OpenSX70 的计算逻辑
+         * @param {string} sn 原始序列号
+         */
+        function calculateSX70(sn) {
+            // 1. 预处理：转大写并移除空格
+            sn = sn.toUpperCase().replace(/\s+/g, '');
 
-function calculate(code) {
-  if (code.length !== 11) return "Error: invalid serial number";
+            // 2. 自动补位逻辑：10位字母开头则补0
+            if (sn.length === 10 && /^[A-M]/.test(sn)) {
+                sn = "0" + sn;
+            }
 
-  const monthMap = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:9,K:10,L:11,M:12};
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
-                      "Jul","Aug","Sep","Oct","Nov","Dec"];
-  const modelMap = {"0":"Model 1","1":"Model 1 variant","2":"Model 2",
-                    "3":"Model 3","5":"Sonar OneStep","8":"SLR680"};
-  const configMap = {"0":"Hybrid","1":"Type 1","2":"Type 2","3":"Type 3",
-                     "4":"Type 4","5":"Sonar","8":"SLR680"};
+            // 3. 基础长度检查
+            if (sn.length !== 11) {
+                return "Error: Invalid Length (Must be 11 digits)";
+            }
 
-  const month = monthMap[code[1]];
-  if (!month) return "Error: invalid month letter";
+            try {
+                // 4. 解析月份 (跳过字母 I)
+                const monthMap = {
+                    "A":1, "B":2, "C":3, "D":4, "E":5, "F":6, 
+                    "G":7, "H":8, "J":9, "K":10, "L":11, "M":12
+                };
+                let monthCode = sn.charAt(1);
+                let month = monthMap[monthCode];
+                if (!month) return "Error: Invalid Month Code";
 
-  const yearDigit = parseInt(code[2]);
-  const modelDigit = code[3];
-  const serialNum = code.substring(4,9);
-  const shiftCode = parseInt(code.substring(9,11));
-  const isSonar = ["4","5","8"].includes(modelDigit);
-  const year = isSonar
-    ? (yearDigit<=2 ? 1980+yearDigit : 1970+yearDigit)
-    : (yearDigit>=2 && yearDigit<=6 ? 1970+yearDigit : 1980+yearDigit);
+                // 5. 解析年份 (SX-70 系列规则)
+                let yearDigit = parseInt(sn.charAt(2));
+                // 如果尾数是 0 或 1，归入 1980s，否则归入 1970s
+                let year = (yearDigit < 2 ? 1980 : 1970) + yearDigit;
 
-  let day, shift;
-  for (let z=0; z<=2; z++) {
-    if ((shiftCode+z) % 3 === 0) {
-      day = Math.floor((shiftCode+z)/3);
-      shift = ["C-Shift","B-Shift","A-Shift"][z];
-      break;
-    }
-  }
-  if (!day || day < 1 || day > 31) return "Error: invalid shift code";
+                // 6. 解析具体日期 (使用最后两位 A 和 B)
+                // A 是第 10 位，B 是第 11 位
+                const dayX = [0, 4, 7, 10, 14, 17, 20, 24, 27, 30];
+                let a = parseInt(sn.charAt(9)); // 倒数第二位
+                let b = parseInt(sn.charAt(10)); // 最后一位
 
-  return [
-    "Birthday: " + monthNames[month-1] + " " + day + ", " + year,
-    "Model: " + (modelMap[modelDigit] || "Unknown"),
-    "Config: " + (configMap[code[0]] || "Unknown"),
-    "Serial: " + serialNum,
-    "Shift: " + shift
-  ].join("\n");
-}
+                // 计算公式：基础偏移 + ceil(B/3)
+                let day = dayX[a] + Math.ceil(b / 3);
 
-document.write("<pre>" + calculate(code) + "</pre>");
-</script>
+                // 7. 返回标准日期格式 YYYY-MM-DD
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } catch (e) {
+                return "Error: Calculation Failed";
+            }
+        }
+
+        // 兼容 Apple 快捷指令的调用接口
+        if (typeof completion === 'function') {
+            // 假设快捷指令会传入一个名为 inputSN 的变量
+            // 这里的调用逻辑通常在快捷指令的脚本框内完成
+        }
+    </script>
 </body>
 </html>
