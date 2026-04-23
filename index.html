@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+<script>
+const params = new URLSearchParams(window.location.search);
+const code = (params.get("serial") || "").toUpperCase();
+
+function calculate(code) {
+  if (code.length !== 11) return "Error: invalid serial number";
+
+  const monthMap = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:9,K:10,L:11,M:12};
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
+                      "Jul","Aug","Sep","Oct","Nov","Dec"];
+  const modelMap = {"0":"Model 1","1":"Model 1 variant","2":"Model 2",
+                    "3":"Model 3","5":"Sonar OneStep","8":"SLR680"};
+  const configMap = {"0":"Hybrid","1":"Type 1","2":"Type 2","3":"Type 3",
+                     "4":"Type 4","5":"Sonar","8":"SLR680"};
+
+  const month = monthMap[code[1]];
+  if (!month) return "Error: invalid month letter";
+
+  const yearDigit = parseInt(code[2]);
+  const modelDigit = code[3];
+  const serialNum = code.substring(4,9);
+  const shiftCode = parseInt(code.substring(9,11));
+  const isSonar = ["4","5","8"].includes(modelDigit);
+  const year = isSonar
+    ? (yearDigit<=2 ? 1980+yearDigit : 1970+yearDigit)
+    : (yearDigit>=2 && yearDigit<=6 ? 1970+yearDigit : 1980+yearDigit);
+
+  let day, shift;
+  for (let z=0; z<=2; z++) {
+    if ((shiftCode+z) % 3 === 0) {
+      day = Math.floor((shiftCode+z)/3);
+      shift = ["C-Shift","B-Shift","A-Shift"][z];
+      break;
+    }
+  }
+  if (!day || day < 1 || day > 31) return "Error: invalid shift code";
+
+  return [
+    "Birthday: " + monthNames[month-1] + " " + day + ", " + year,
+    "Model: " + (modelMap[modelDigit] || "Unknown"),
+    "Config: " + (configMap[code[0]] || "Unknown"),
+    "Serial: " + serialNum,
+    "Shift: " + shift
+  ].join("\n");
+}
+
+document.write("<pre>" + calculate(code) + "</pre>");
+</script>
+</body>
+</html>
