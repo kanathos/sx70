@@ -1,51 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-</head>
 <body>
     <script>
         function calculateSX70(sn) {
-            // 1. 清理数据：删空格、转大写
             sn = sn.toUpperCase().replace(/\s+/g, '');
-
-            // 2. 核心补位逻辑：10位且字母开头，前面加0
-            if (sn.length === 10 && /^[A-M]/.test(sn)) {
-                sn = "0" + sn;
-            }
-
-            if (sn.length !== 11) return "Error: Invalid Length";
-
-            // 3. 月份字典 (严格跳过 I)
-            const monthMap = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"J":9,"K":10,"L":11,"M":12};
-            let m = monthMap[sn.charAt(1)];
-            if (!m) return "Error: Invalid Month";
-
-            // 4. 年份逻辑 (SX-70 系列)
-            let yDigit = parseInt(sn.charAt(2));
-            // OpenSX70 逻辑：0和1代表1980/81，2-9代表1972-79
-            let y = (yDigit < 2 ? 1980 : 1970) + yDigit;
-
-            // 5. 日期逻辑 (这是最容易出错的地方)
-            const dayX = [0, 4, 7, 10, 14, 17, 20, 24, 27, 30]; // 对应 A (第10位)
-            let a = parseInt(sn.charAt(9));
-            let b = parseInt(sn.charAt(10));
-
-            /** 
-             * OpenSX70 精准规则：
-             * B 值(最后一位)决定了在基础天数 BaseX 上的偏移量。
-             * 偏移计算：(B + 2) / 3 然后向下取整。
-             * 例如：B=1,2,3 偏移1天；B=4,5,6 偏移2天...
-             */
-            let offset = Math.floor((b + 2) / 3);
-            let d = dayX[a] + offset;
-
-            // 6. 输出 YYYY-MM-DD
-            return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            if (sn.length === 10 && /^[A-M]/.test(sn)) { sn = "0" + sn; }
+            if (sn.length !== 11) return "Invalid SN";
+            
+            var monthMap = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"J":9,"K":10,"L":11,"M":12};
+            var m = monthMap[sn.charAt(1)];
+            var yDigit = parseInt(sn.charAt(2));
+            var y = (yDigit < 2 ? 1980 : 1970) + yDigit;
+            
+            var dayX = [0,4,7,10,14,17,20,24,27,30];
+            var a = parseInt(sn.charAt(9));
+            var b = parseInt(sn.charAt(10));
+            var d = dayX[a] + Math.floor((b + 2) / 3);
+            
+            return y + "-" + m + "-" + d;
         }
-
-        // 供快捷指令调用的入口
-        window.calculateSX70 = calculateSX70;
     </script>
 </body>
 </html>
