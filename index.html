@@ -1,355 +1,64 @@
 <!DOCTYPE html>
-<html class="no-js">
-
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-
-    <!-- begin SEO -->
-
-
-
-
-
-
-
-
-
-<title>Serial Number Calculator  OpenSX70</title>
-
-
-
-
-<meta name="description" content="">
-
-
-
-
-<meta name="author" content="">
-
-<meta property="og:locale" content="en_US">
-<meta property="og:site_name" content="OpenSX70">
-<meta property="og:title" content="Serial Number Calculator">
-
-
-  <link rel="canonical" href="https://opensx70.com/calculator/">
-  <meta property="og:url" content="https://opensx70.com/calculator/">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- end SEO -->
-
-    <!-- <title>OpenSX70 | Serial Number Calculator</title> -->
-    <meta name="description" content="">
-
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-
-    
-
-    <link rel="stylesheet" href="/css/main.css?1773137743683124610">
-
-    <link rel="canonical" href="https://opensx70.com/calculator/">
-    <link rel="alternate" type="application/rss+xml" title="OpenSX70" href="https://opensx70.com/feed.xml" />
-
-    <!--[if lt IE 9]>
-        <script src="/js/vendor/html5shiv.min.js"></script>
-    <![endif]-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
 </head>
+<body>
+    <script>
+        /**
+         * 纯逻辑运算函数
+         * @param {string} sn 传入的已处理好的 11 位大写序列号
+         * @param {string} color 传入的颜色变量 ("Silver" 或 "Plastic")
+         */
+        function calculateSX70Details(sn, color) {
+            try {
+                // 1. Birthday 计算 (第 2, 3, 10, 11 位)
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const monthMap = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"J":9,"K":10,"L":11,"M":12};
+                
+                let mCode = sn.charAt(1);
+                let mIdx = monthMap[mCode] - 1;
+                let yDigit = parseInt(sn.charAt(2));
+                let year = (yDigit < 2 ? 1980 : 1970) + yDigit;
+                
+                // OpenSX70 核心日期偏移逻辑
+                const dayX = [0, 4, 7, 10, 14, 17, 20, 24, 27, 30];
+                let a = parseInt(sn.charAt(9)); 
+                let b = parseInt(sn.charAt(10));
+                let day = dayX[a] + Math.floor((b + 2) / 3);
+                
+                let birthday = `${monthNames[mIdx]} ${day}, ${year}`;
 
+                // 2. 精确机型判断 (Model)
+                let model = "SX-70 Series";
+                const prefix = sn.charAt(0);
+                
+                if (year >= 1978 && (prefix === '5' || prefix === '6')) {
+                    model = "SX-70 Sonar OneStep";
+                } else if (year >= 1977) {
+                    model = (color === "Silver") ? "Alpha 1 Plated" : "Alpha 1 Model 2";
+                } else {
+                    model = (color === "Silver") ? "Model 1" : "Model 2";
+                }
 
+                // 3. 配置与班次 (Config & Shift)
+                let config = (year <= 1975 && prefix === '0') ? 'hybrid "Q" shutter' : "Standard/Alpha Shutter";
+                if (year >= 1977) config = "Improved Alpha Shutter";
 
-  <body class="">
-    <!-- if the user has javascript disabled they can still use the menu -->
-<noscript>
-    <div class="no-js-menu clearfix">
-        <ul>
-            
-                
-                <li><i class="fa fa-camera"></i><a href="/">Home</a></li>
-                
-            
-                
-                <li><i class="fa fa-quote-left"></i><a href="/about">About</a></li>
-                
-            
-                
-                <li><i class="fa fa-question-circle"></i><a href="/FAQ">FAQ</a></li>
-                
-            
-                
-                <li><i class="fa fa-external-link"></i><a href="https://github.com/openSX70/openSX70-Arduino-main/wiki">WIKI</a></li>
-                
-            
-                
-                <li><i class="fa fa-wrench"></i><a href="/tutorials">Tutorials</a></li>
-                
-            
-                
-                <li><i class="fa fa-cogs"></i><a href="/shop">Parts</a></li>
-                
-            
-                
-                <li><i class="fa fa-external-link-square"></i><a href="/links">Links</a></li>
-                
-            
-                
-                <li><i class="fa fa-calculator"></i><a href="/calculator">Serial Calculator</a></li>
-                
-            
-                
-                <li><i class="fa fa-newspaper-o"></i><a href="/press">Press</a></li>
-                
-            
-                
-                <li><i class="fa fa-files-o"></i><a href="/files">Files</a></li>
-                
-            
-                
-                <li><i class="fa fa-photo"></i><a href="https://adobe.ly/2tofFOf">Gallery</a></li>
-                
-            
-                
-                <li><i class="fa fa-user"></i><a href="/author/joaquin">Author</a></li>
-                
-            
-                
-                <li><i class="fa fa-paypal"></i><a href="https://paypal.me/opensx70">Donate</a></li>
-                
-            
-        </ul>
-    </div>
-</noscript>
-<!-- end no script -->
+                const shiftMap = ["C", "A", "B"];
+                let shift = shiftMap[b % 3];
+                let cameraNum = sn.substring(3, 8); // 提取中间流水号
 
-    <header class="hero-image" style='background-image: url(/img/serial.jpg);'>
-    <span class="menu-trigger animated fadeInDown">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    </span>
+                // 4. 格式化输出文本
+                return `Serial Number : \n${sn}\n\nConfig : \n${config}\n\nModel : \n${model}\n\nBirthday : \n${birthday}\n\nCamera Number : \n${cameraNum}\n\nShift Number : \n${shift}`;
 
-    <div id="menu-target">
-    <ul>
-        
-            
-            <li>
-            	<i class="fa fa-camera"></i>
-            	<a href="/" 
-            	>Home</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-quote-left"></i>
-            	<a href="/about" 
-            	>About</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-question-circle"></i>
-            	<a href="/FAQ" 
-            	>FAQ</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-external-link"></i>
-            	<a href="https://github.com/openSX70/openSX70-Arduino-main/wiki" 
-            	 
-            	target="_blank"
-            	>WIKI</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-wrench"></i>
-            	<a href="/tutorials" 
-            	>Tutorials</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-cogs"></i>
-            	<a href="/shop" 
-            	>Parts</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-external-link-square"></i>
-            	<a href="/links" 
-            	>Links</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-calculator"></i>
-            	<a href="/calculator" 
-            	>Serial Calculator</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-newspaper-o"></i>
-            	<a href="/press" 
-            	>Press</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-files-o"></i>
-            	<a href="/files" 
-            	>Files</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-photo"></i>
-            	<a href="https://adobe.ly/2tofFOf" 
-            	 
-            	target="_blank"
-            	>Gallery</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-user"></i>
-            	<a href="/author/joaquin" 
-            	>Author</a></li>
-            
-        
-            
-            <li>
-            	<i class="fa fa-paypal"></i>
-            	<a href="https://paypal.me/opensx70" 
-            	 
-            	target="_blank"
-            	>Donate</a></li>
-            
-        
-    </ul>
-</div>
+            } catch (e) {
+                return "Error: Data parsing failed. Please check the Serial Number format.";
+            }
+        }
 
-</header>
-
-<main class="container">
-    <div class="row">
-        <div class="col-xs-12 single-content">
-
-            <h1>Serial Number Calculator</h1>
-
-            <div class="calculator">
-	<label>Insert your SX70 Serial Number:</label>
-	<input type="text" id="calculator-input" placeholder="0E504057143" value="0E504057143" />
-	<button onclick="calculateSerialNumber()">Calculate</button>
-</div>
-
-<div class="calculator-results">
-	<div class="calculator-row serial-number">
-		<label>Serial Number : </label>
-		<div class="serial-number-value">0E504057143</div>
-	</div>
-	<div class="calculator-row config">
-		<label>Config : </label>
-		<div class="config-value">0E504057143</div>
-	</div>
-	<div class="calculator-row model">
-		<label>Model : </label>
-		<div class="model-value">0E504057143</div>
-	</div>
-	<div class="calculator-row birthday">
-		<label>Birthday : </label>
-		<div class="birthday-value">0E504057143</div>
-	</div>
-	<div class="calculator-row birthday">
-		<label>Camera Number : </label>
-		<div class="camera-number-value">0E504057143</div>
-	</div>
-	<div class="calculator-row birthday">
-		<label>Shift Number : </label>
-		<div class="shift-number-value">0E504057143</div>
-	</div>
-</div>
-
-<div class="embed-code">
-    <label for="iframe-code">Embed this calculator on your website:</label>
-    <input type="text" id="iframe-code" readonly="" value="&lt;iframe src=&quot;https://opensx70.com/calculator-iframe/&quot; width=&quot;600&quot; height=&quot;400&quot;&gt;&lt;/iframe&gt;" />
-    <button onclick="copyToClipboard()">Copy</button>
-</div>
-
-<script src=" /js/calculator.js"></script>
-
-
-
-        </div><!-- main-content/col -->
-    </div> <!--/row -->
-
-</main> <!-- /container -->
-
-<footer class="single single-page without-readmore">
-    <div class="container">
-        <div class="col-sm-12">
-            <p>Welcome to the openSX70 community &copy; 2023 <a href="/">latest posts</a></p>
-        </div>
-    </div>
-</footer>
-
-
-    <script src='/js/vendor/modernizr.custom.32229-2.8-respondjs-1-4-2.js'></script>
-    <script src="/js/vendor/jquery-1.11.2.min.js"></script>
-    <script src='/js/vendor/jquery.jpanelmenu.min.js'></script>
-    <script type='application/javascript' src='/js/vendor/fastclick.min.js'></script>
-    
-    
-    <script src=' /js/main.js?1773137743683124610'></script>
-
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126751298-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-126751298-1');
-</script>
-
-    
-  </body>
-
+        // 挂载函数到窗口，确保快捷指令可以访问
+        window.calculateSX70Details = calculateSX70Details;
+    </script>
+</body>
 </html>
