@@ -1,23 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Polaroid SX-70 Birthday Calculator</title>
+</head>
 <body>
     <script>
+        /**
+         * 完全复刻 OpenSX70 的计算逻辑
+         * @param {string} sn 原始序列号
+         */
         function calculateSX70(sn) {
+            // 1. 预处理：转大写并移除空格
             sn = sn.toUpperCase().replace(/\s+/g, '');
-            if (sn.length === 10 && /^[A-M]/.test(sn)) { sn = "0" + sn; }
-            if (sn.length !== 11) return "Invalid SN";
-            
-            var monthMap = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8,"J":9,"K":10,"L":11,"M":12};
-            var m = monthMap[sn.charAt(1)];
-            var yDigit = parseInt(sn.charAt(2));
-            var y = (yDigit < 2 ? 1980 : 1970) + yDigit;
-            
-            var dayX = [0,4,7,10,14,17,20,24,27,30];
-            var a = parseInt(sn.charAt(9));
-            var b = parseInt(sn.charAt(10));
-            var d = dayX[a] + Math.floor((b + 2) / 3);
-            
-            return y + "-" + m + "-" + d;
+
+            // 2. 自动补位逻辑：10位字母开头则补0
+            if (sn.length === 10 && /^[A-M]/.test(sn)) {
+                sn = "0" + sn;
+            }
+
+            // 3. 基础长度检查
+            if (sn.length !== 11) {
+                return "Error: Invalid Length (Must be 11 digits)";
+            }
+
+            try {
+                // 4. 解析月份 (跳过字母 I)
+                const monthMap = {
+                    "A":1, "B":2, "C":3, "D":4, "E":5, "F":6, 
+                    "G":7, "H":8, "J":9, "K":10, "L":11, "M":12
+                };
+                let monthCode = sn.charAt(1);
+                let month = monthMap[monthCode];
+                if (!month) return "Error: Invalid Month Code";
+
+                // 5. 解析年份 (SX-70 系列规则)
+                let yearDigit = parseInt(sn.charAt(2));
+                // 如果尾数是 0 或 1，归入 1980s，否则归入 1970s
+                let year = (yearDigit < 2 ? 1980 : 1970) + yearDigit;
+
+                // 6. 解析具体日期 (使用最后两位 A 和 B)
+                // A 是第 10 位，B 是第 11 位
+                const dayX = [0, 4, 7, 10, 14, 17, 20, 24, 27, 30];
+                let a = parseInt(sn.charAt(9)); // 倒数第二位
+                let b = parseInt(sn.charAt(10)); // 最后一位
+
+                // 计算公式：基础偏移 + ceil(B/3)
+                let day = dayX[a] + Math.ceil(b / 3);
+
+                // 7. 返回标准日期格式 YYYY-MM-DD
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            } catch (e) {
+                return "Error: Calculation Failed";
+            }
+        }
+
+        // 兼容 Apple 快捷指令的调用接口
+        if (typeof completion === 'function') {
+            // 假设快捷指令会传入一个名为 inputSN 的变量
+            // 这里的调用逻辑通常在快捷指令的脚本框内完成
         }
     </script>
 </body>
